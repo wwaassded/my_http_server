@@ -1,0 +1,6 @@
+test/
+build/
+*.o
+*.s
+*.out
+*.i

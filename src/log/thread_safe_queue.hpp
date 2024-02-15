@@ -11,7 +11,7 @@ static const int internal_wait_ms = 100;  // TODO 可能需要一个更好的数
 template <class __Ty>
 class Block_queue {
  public:
-  Block_queue(size_t __max_size) : max_size(__max_size), size(0) { content = malloc(sizeof(__Ty) * max_size); }
+  Block_queue(size_t __max_size) : max_size(__max_size), size(0) { content = new __Ty[max_size]; }
 
   ~Block_queue() {
     if (content != nullptr) {
@@ -60,7 +60,7 @@ class Block_queue {
   }
 
   // push非阻塞的
-  bool Push(const __Ty &value)->bool {
+  auto Push(const __Ty &value)->bool {
     std::unique_lock<std::mutex> guard(lock);
     if (size >= max_size) {
       //? pop_cv.notify_one();

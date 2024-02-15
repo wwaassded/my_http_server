@@ -14,14 +14,14 @@ static const int MAX_BUFFER_QUEUE_SIZE = 8;
 static const int VERBOSITY_NAME_LEN = 9;
 
 auto Log::GetInstance() -> Log * {
-  static Log log = Log();
+  static Log log;
   return &log;
 }
 
 // TODO
 Log::Log() : is_aync(false), block_queue(nullptr) {}
 Log::~Log() {
-  delete[] start_time;
+  free(start_time);
   if (file != nullptr) fclose(file);
 }
 

@@ -1,4 +1,4 @@
-#include "log/log.hpp"
+#include "../include/log/log.hpp"
 
 int main() {
 #ifdef ASYNC_LOG  //异步日志

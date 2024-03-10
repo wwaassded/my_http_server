@@ -5,6 +5,8 @@ TARGET = server
 
 DEPFLAGS = -MP -MD
 
+LIB_FLAGS = -llog
+
 SRC = ./src
 CODE_DIR_IN_SRC = $(wildcard $(SRC)/*)
 CODEDIRS = ./src $(CODE_DIR_IN_SRC)
@@ -26,7 +28,7 @@ all:$(TARGET)
 
 
 $(TARGET):$(OBJECTS)
-	$(CC) -o $@ $^
+	$(CC) $^ -o $@ $(LIB_FLAGS)
 
 %.o:%.cc
 	$(CC) $(FLAGS) -c -o $@ $<

@@ -5,3 +5,9 @@ build/
 *.out
 *.i
 *.d
+*.log
+server
+log/
+.vscode/
+.idea/
+.cache/

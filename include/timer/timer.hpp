@@ -23,6 +23,9 @@ struct __timer_node
     __user_data *__data;
 };
 
+typedef __timer_node Timer_Node;
+typedef __user_data User_Data;
+
 //* 应该不涉及到并发访问问题
 class Timer
 {
@@ -38,11 +41,11 @@ public:
 
     bool Refresh_Timer(__timer_node *, time_t); // 刷新timer中的节点
 
+    bool Remove_from_chain(__timer_node *); // 并不会free node
+
     void Tick(); // 处理所有超时的节点
 
 private:
-    bool remove_from_chain(__timer_node *); // 并不会free node
-
     __timer_node *__timer_chain{nullptr};
 };
 

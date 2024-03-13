@@ -2,6 +2,7 @@
 #define SOCKET_HPP
 
 #include <sys/epoll.h>
+#include <cstddef>
 
 enum class MODE
 {
@@ -22,6 +23,8 @@ public:
     ~Epoll() { delete[] new_events; }
 
     int Add_fd(int fd, MODE mode, bool is_oneshot);
+
+    inline int Remove_fd(int fd) { return epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL); }
 
     int Epoll_Wait(int time);
 

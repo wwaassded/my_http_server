@@ -75,7 +75,7 @@ void Timer::Add_Timer_Node(__timer_node *node)
     }
 }
 
-bool Timer::remove_from_chain(__timer_node *node)
+bool Timer::Remove_from_chain(__timer_node *node)
 {
     if (node == nullptr || __timer_chain == nullptr)
         return false;
@@ -96,9 +96,10 @@ bool Timer::Refresh_Timer(__timer_node *node, time_t new_expired_time)
 {
     if (node == nullptr || __timer_chain == nullptr || node->__expired_time == new_expired_time)
         return false;
-    assert(remove_from_chain(node));
+    assert(Remove_from_chain(node));
     node->__expired_time = new_expired_time;
     Add_Timer_Node(node);
+    return true;
 }
 
 void Timer::Tick()

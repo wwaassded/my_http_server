@@ -6,12 +6,13 @@
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
+#include <map>
 #include "../include/log/log_what.hpp"
 #include "../include/socket_op.hpp"
-#include <map>
 #include "../include/http_connection/http_connection.hpp"
 #include "../include/timer/timer.hpp"
 #include "../include/thread_pool/thread_pool.hpp"
+#include "../include/mysql_connection/mysql_connection.hpp"
 
 static const int THREAD_NUMBER = 8;
 static const short localhost_port = 3308;
@@ -80,6 +81,7 @@ static int listener;
 int main(int argc, char *argv[])
 {
     init_log_system(argc, argv);
+    Mysql_Connection_Pool::GetInstance()->Init("localhost", "root", "2994899015", "test", 3306, 8);
     listener = socket(AF_INET, SOCK_STREAM, 0);
     if (listener < 0)
     {

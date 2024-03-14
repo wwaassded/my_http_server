@@ -5,7 +5,7 @@ TARGET = server
 
 DEPFLAGS = -MP -MD
 
-LIB_FLAGS = -llog
+LIB_FLAGS = -llog -lpthread -lmysqlclient
 
 SRC = ./src
 CODE_DIR_IN_SRC = $(wildcard $(SRC)/*)

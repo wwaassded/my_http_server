@@ -32,3 +32,13 @@ int Epoll::Epoll_Wait(int time)
 {
     return epoll_wait(epoll_fd, new_events, epoll_size, time);
 }
+
+int Epoll::ReAdd_fd(int fd, uint32_t ev, bool is_ET)
+{
+    epoll_event event;
+    event.data.fd = fd;
+    event.events = ev | EPOLLONESHOT | EPOLLRDHUP;
+    if (is_ET)
+        event.events |= EPOLLET;
+    epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &event);
+}

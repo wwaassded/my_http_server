@@ -97,7 +97,8 @@ bool Timer::Refresh_Timer(__timer_node *node, time_t new_expired_time)
     if (node == nullptr || __timer_chain == nullptr || node->__expired_time == new_expired_time)
         return false;
     assert(Remove_from_chain(node));
-    node->__expired_time = new_expired_time;
+    auto now = time(nullptr);
+    node->__expired_time = new_expired_time + now;
     Add_Timer_Node(node);
     return true;
 }

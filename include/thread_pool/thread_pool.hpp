@@ -5,10 +5,10 @@
 #include <thread>
 #include <condition_variable>
 #include <vector>
-#include <http_connection.hpp>
+#include "../http_connection/http_connection.hpp"
 #include <atomic>
-#include <thread_pool_continent_base.hpp>
-#include <log_what.hpp>
+#include "thread_pool_continent_base.hpp"
+#include "../log/log_what.hpp"
 
 static const unsigned THREAD_MIN_NUMBER = 4;
 static const unsigned THREAD_MAX_NUMBER = 16;
@@ -49,7 +49,10 @@ public:
                     }
                     job = __resource_queue.back();
                     __resource_queue.pop_back();
-                }           // job->Run(); 可能会比较耗时 控制一下🔒的粒度
+                } // job->Run(); 可能会比较耗时 控制一下🔒的粒度
+                Mysql_Connection_RAII tmp;
+                // TODO: 服务器的缓存逻辑可能会更改 目前进程支持 mysql数据库的访问 后续：redis 缓存 缓解服务器mysql查询的压力
+                job->mysql = tmp.Get_Mysql(&(job->mysql), Mysql_Connection_Pool::GetInstance(), -1);
                 job->Run(); // 纯虚函数的调用
             }
         };

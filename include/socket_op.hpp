@@ -24,6 +24,8 @@ public:
 
     int Add_fd(int fd, MODE mode, bool is_oneshot);
 
+    int ReAdd_fd(int fd, uint32_t ev, bool is_ET);
+
     inline int Remove_fd(int fd) { return epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL); }
 
     int Epoll_Wait(int time);

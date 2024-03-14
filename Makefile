@@ -5,7 +5,7 @@ TARGET = server
 
 DEPFLAGS = -MP -MD
 
-LIB_FLAGS = -llog -lpthread -lmysqlclient
+LIB_FLAGS = -llog -lpthread -lmysqlclient # log --> 日志库  mysqlclient --> mysql库
 
 SRC = ./src
 CODE_DIR_IN_SRC = $(wildcard $(SRC)/*)

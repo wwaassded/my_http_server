@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <map>
+#include <memory>
 #include "../include/log/log_what.hpp"
 #include "../include/socket_op.hpp"
 #include "../include/http_connection/http_connection.hpp"
@@ -18,15 +19,17 @@ static const int THREAD_NUMBER = 8;
 static const short localhost_port = 3308;
 static const char *server_ip_address = "127.0.0.1";
 static const int EPOLL_SIZE = 10000;
+static const int TIME_TIMES = 3;               // 新事件发生时 超时时间增加的倍数
 static const int TIME_SLOT = 5;                // 定时器的出发间隔
 static int pip[2];                             // 定时器实现的通信工具 简单约定 1:为写端 0:为读端
 static Timer global_timer(new __timer_node()); // 定时器的实现 有序链表
-static std::map<int, Http_Connection> client_connections;
+static std::map<int, std::unique_ptr<Http_Connection>> client_connections;
 static std::map<int, User_Data *> client_datas;
 static bool is_timeout = false;
 static bool is_terminated = false;
 static Epoll __epoll(EPOLL_SIZE);
 static Thread_Pool thread_pool(THREAD_NUMBER);
+Epoll *Http_Connection::poller = &__epoll; //? private static 变量的初始化
 
 // TODO：线程池 easy
 // TODO：http链接 应该保留有一定的状态 hard
@@ -128,8 +131,6 @@ int main(int argc, char *argv[])
                     continue;
                 }
                 LOG(INFO, "IP:%s connected to our server!", inet_ntoa(client_address.sin_addr));
-                set_socket_nonblock(client_sock);
-                __epoll.Add_fd(client_sock, MODE::EDGE, true); // 边沿触发 加 epolloneshot
                 // TODO: 完成http connection 结构体的设计后对 client_sock进行进一步的封装
                 //   添加 到线程池中
                 auto new_timer = new Timer_Node();
@@ -148,6 +149,16 @@ int main(int argc, char *argv[])
                     LOG(ERROR, "failed to create a connect with %s", inet_ntoa(data->__client_address.sin_addr));
                     goto DELETE;
                 }
+                set_socket_nonblock(client_sock);
+                __epoll.Add_fd(client_sock, MODE::EDGE, true); // 边沿触发 加 epolloneshot
+                auto item = client_connections.emplace(client_sock, std::make_unique<Http_Connection>());
+                if (!item.second)
+                {
+                    socket = client_sock;
+                    LOG(ERROR, "failed to create a connect with %s", inet_ntoa(data->__client_address.sin_addr));
+                    goto DELETE;
+                }
+                item.first->second->Init(client_sock, &client_address);
             }
             else if (socket == pip[0] && (event->events | EPOLLIN))
             {
@@ -201,6 +212,26 @@ int main(int argc, char *argv[])
             else if (event->events | EPOLLIN)
             {
                 // 处理读事件
+                auto item = client_connections.find(socket);
+                if (item == client_connections.end())
+                {
+                    LOG(ERROR, "unknown error can not locate client connection")
+                    assert(false);
+                }
+                auto http_connection = item->second.get();
+                assert(http_connection != nullptr);
+                auto user_data = client_datas[socket];
+                auto timer_node = user_data->__timer;
+                if (http_connection->Read_Once()) // true 表示对端没有关闭 一切正常
+                {
+                    thread_pool.Submit(http_connection); // 添加到线程池中来处理链接
+                    if (timer_node != nullptr)           // 写事件到达 应该刷新链接的超时时间
+                        global_timer.Refresh_Timer(timer_node, TIME_SLOT * TIME_TIMES);
+                }
+                else // false 表示对端已经关闭 或者 read_once 函数出现错误
+                {
+                    goto DELETE;
+                }
             }
             else if (event->events | EPOLLOUT)
             {

@@ -1,4 +1,5 @@
 #include <string.h>
+#include "../../include/log/log_what.hpp"
 #include "../../include/http_connection/http_connection.hpp"
 
 void Http_Connection::Init(int fd, sockaddr_in *address)
@@ -75,12 +76,34 @@ LINE_STATUS Http_Connection::parse_line() // 解析request_line 和 request_head
     return LINE_STATUS::LINE_OPEN;
 }
 
+// 对request line 进行解析  格式:  [method   url   version] (\r\n) <-- 已经被处理掉了
+HTTP_REQUEST_STATUS Http_Connection::parse_request_line(char *reauest_line)
+{
+}
+
 HTTP_REQUEST_STATUS Http_Connection::run_read()
 {
     LINE_STATUS line_status = LINE_STATUS::LINE_OK;
     HTTP_REQUEST_STATUS ret = HTTP_REQUEST_STATUS::NO_REQUEST;
+    char *text = nullptr;
     while ((status == STATUS::GET_REQUEST_CONTINENT && line_status == LINE_STATUS::LINE_OK) || ((line_status = parse_line()) == LINE_STATUS::LINE_OK))
     {
+        text = get_line();
+        LOG(INFO, "get:%s", text);
+        switch (status)
+        {
+        case STATUS::GET_REQUEST_LINE:
+            ret = parse_request_line(text);
+            if (ret == HTTP_REQUEST_STATUS::BAD_REQUEST)
+                return BAD_REQUEST;
+            break;
+        case STATUS::GET_REQUEST_HEADER:
+            break;
+        case STATUS::GET_REQUEST_CONTINENT:
+            break;
+        default:
+            return HTTP_REQUEST_STATUS::INTERNAL_ERROR;
+        }
     }
     return ret;
 }

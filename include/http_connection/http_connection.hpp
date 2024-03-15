@@ -71,6 +71,7 @@ private:
     //! unsafe
     inline char *get_line() { return __read_buffer + __start_line_idx; } //*调用该函数前应该确保 \r\n已经被替换成为 \0\0 否则会导致难以预料的错误
     LINE_STATUS parse_line();
+    HTTP_REQUEST_STATUS parse_request_line(char *);
 
     // 确定链接
 private:
